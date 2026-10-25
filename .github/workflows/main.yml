@@ -23,13 +23,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # Skip the action's own interactive license prompt; accept the licenses
+      # in the next step with a sufficiently long non-interactive input.
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v4
         with:
-          accept-android-sdk-licenses: true
-      - name: Install Android SDK packages
+          accept-android-sdk-licenses: false
+          packages: ''
+
+      - name: Accept Android SDK licenses and install SDK packages
+        shell: bash
         run: |
-          yes | sdkmanager --licenses >/dev/null || true
+          set +o pipefail
+          printf 'y\n%.0s' {1..100} | sdkmanager --licenses
+          set -o pipefail
           sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
 
       - name: Install Gradle 8.9
